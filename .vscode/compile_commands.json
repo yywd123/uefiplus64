@@ -1,0 +1,36 @@
+[
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/rt.cpp.o", "efirt/rt.cpp"],
+  "file": "efirt/rt.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/memory.cpp.o", "efirt/memory.cpp"],
+  "file": "efirt/memory.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/device_path.cpp.o", "efirt/device_path.cpp"],
+  "file": "efirt/device_path.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/file.cpp.o", "efirt/file.cpp"],
+  "file": "efirt/file.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/protocol.cpp.o", "efirt/protocol.cpp"],
+  "file": "efirt/protocol.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/image_loader.cpp.o", "efirt/image_loader.cpp"],
+  "file": "efirt/image_loader.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
+  "file": "src/main.cpp"
+}]
