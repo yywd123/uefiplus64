@@ -11,7 +11,7 @@ target("efi_application")
     add_files("src/**.cpp")
 
     before_build("!linux|x86_64", function () 
-        raise("invaild platform, please use linux instead")
+        raise("invaild platform, please use linux or cross compiler instead")
     end)
 
     on_link(function (target)
@@ -35,4 +35,7 @@ target("efi_application")
         
         os.exec(objcopy.." -j .text -j .data -j .rela.dyn -j .reloc --target efi-app-x86_64 "..objectdir.."/"..name..".so "..rundir.."/"..name.."_unstrip.efi")
         os.exec(objcopy.." --strip-all "..rundir.."/"..name.."_unstrip.efi "..rundir.."/"..name.."_stripped.efi")
+
+        -- make a copy
+        os.trycp(rundir.."/"..name.."_stripped.efi", "./build/"..name..".efi")
     end)
