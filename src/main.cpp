@@ -5,9 +5,10 @@ using namespace efi;
 extern "C" EFIAPI Status main() {
   auto bs = getSystemTable()->bootServices;
 
-  bs->setWatchdogTimer(0, 0, 0, nullptr);
+  printf(u"hello world\r\n");
 
-  print(u"hello world\r\n");
+  //  sleep for 5s
+  bs->stall(5000000);
 
-  return 0;
+  return EFI_SUCCESS;
 }

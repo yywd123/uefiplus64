@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <efi/efi.hpp>

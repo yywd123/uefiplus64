@@ -7,7 +7,7 @@
                 "${workspaceFolder}/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/clang"
+            "compilerPath": "/usr/bin/g++"
         }
     ],
     "version": 4

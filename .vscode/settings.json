@@ -2,6 +2,12 @@
   "files.associations": {
     "*.cpp": "cpp",
     "cstdint": "cpp",
-    "compare": "cpp"
+    "compare": "cpp",
+    "memory": "cpp",
+    "ostream": "cpp",
+    "array": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "cstdarg": "cpp"
   }
 }

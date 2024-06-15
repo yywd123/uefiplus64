@@ -1,13 +1,16 @@
 add_rules("mode.debug", "mode.release")
 
+local ovmf_path = "/usr/share/OVMF/OVMF_CODE_4M.fd" -- replace with your ovmf path
+
 target("efi_application")
     set_kind("binary")
 
     add_cxxflags("-c -g -ffreestanding -nostdlib -mcmodel=large -m64 -fdata-sections -ffunction-sections -fno-exceptions -fno-rtti -Wall -Werror")
     set_optimize("smallest")
 
-    add_files("efirt/**.cpp")
     add_includedirs("include")
+
+    add_files("efirt/**.cpp")
     add_files("src/**.cpp")
 
     before_build("!linux|x86_64", function () 
@@ -34,8 +37,17 @@ target("efi_application")
         os.mkdir(rundir)
         
         os.exec(objcopy.." -j .text -j .data -j .rela.dyn -j .reloc --target efi-app-x86_64 "..objectdir.."/"..name..".so "..rundir.."/"..name.."_unstrip.efi")
-        os.exec(objcopy.." --strip-all "..rundir.."/"..name.."_unstrip.efi "..rundir.."/"..name.."_stripped.efi")
+        os.exec(objcopy.." -R .reloc --strip-all "..rundir.."/"..name.."_unstrip.efi "..rundir.."/"..name.."_stripped.efi")
+    end)
 
-        -- make a copy
-        os.trycp(rundir.."/"..name.."_stripped.efi", "./build/"..name..".efi")
+    on_run(function (target) 
+        -- copy to build/esp
+        rundir = target:rundir()
+        name = target:name()
+        espdir = rundir.."/../../../esp/"
+
+        os.mkdir(espdir.."efi/boot/")
+        os.trycp(rundir.."/"..name.."_stripped.efi", espdir.."efi/boot/bootx64.efi")
+
+        os.exec("qemu-system-x86_64 -net none -m 1g -hda fat:rw:build/esp -pflash "..ovmf_path)
     end)

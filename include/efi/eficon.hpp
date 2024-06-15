@@ -144,68 +144,81 @@
 
 namespace efi {
 
-struct SimpleTextOutputProtocol;
-
 template <typename T>
 using TextReset = Status(EFIAPI *)(T *instance, bool extendedVerification);
 
-typedef Status(EFIAPI *TextOutputString)(
-    struct SimpleTextOutputProtocol *instance, const char16_t *string);
-typedef Status(EFIAPI *TextTestString)(
-    struct SimpleTextOutputProtocol *instance, const char16_t *string);
-typedef Status(EFIAPI *TextQueryMode)(struct SimpleTextOutputProtocol *instance,
-                                      uint64_t modeNumber, uint64_t *columns,
-                                      uint64_t *rows);
-typedef Status(EFIAPI *TextSetMode)(struct SimpleTextOutputProtocol *instance,
-                                    uint64_t modeNumber);
-typedef Status(EFIAPI *TextSetAttribute)(
-    struct SimpleTextOutputProtocol *instance, uint64_t attribute);
-typedef Status(EFIAPI *TextClearScreen)(
-    struct SimpleTextOutputProtocol *instance);
-typedef Status(EFIAPI *TextSetCursorPosition)(
-    struct SimpleTextOutputProtocol *instance, uint64_t column, uint64_t row);
-typedef Status(EFIAPI *TextEnableCursor)(
-    struct SimpleTextOutputProtocol *instance, bool enable);
-
-typedef struct {
-  int32_t maxMode;
-
-  int32_t mode;
-  int32_t attribute;
-  int32_t cursorColumn;
-  int32_t cursorRow;
-  bool cursorVisible;
-} SimpleTextOptputMode;
-
 typedef struct SimpleTextOutputProtocol {
-  TextReset<SimpleTextOutputProtocol> reset;
+  typedef struct {
+    int32_t maxMode;
 
-  TextOutputString outputString;
-  TextTestString testString;
+    int32_t mode;
+    int32_t attribute;
+    int32_t cursorColumn;
+    int32_t cursorRow;
+    bool cursorVisible;
+  } OptputMode;
 
-  TextQueryMode queryMode;
-  TextSetMode setMode;
-  TextSetAttribute setAttribute;
+  typedef Status(EFIAPI *OutputString)(
+      struct SimpleTextOutputProtocol *instance,
+      const char16_t *string
+  );
+  typedef Status(EFIAPI TestString)(
+      struct SimpleTextOutputProtocol *instance,
+      const char16_t *string
+  );
+  typedef Status(EFIAPI QueryMode)(
+      struct SimpleTextOutputProtocol *instance,
+      uint64_t modeNumber,
+      uint64_t *columns,
+      uint64_t *rows
+  );
+  typedef Status(EFIAPI SetMode)(
+      struct SimpleTextOutputProtocol *instance,
+      uint64_t modeNumber
+  );
+  typedef Status(EFIAPI SetAttribute)(
+      struct SimpleTextOutputProtocol *instance,
+      uint64_t attribute
+  );
+  typedef Status(EFIAPI ClearScreen)(struct SimpleTextOutputProtocol *instance);
+  typedef Status(EFIAPI SetCursorPosition)(
+      struct SimpleTextOutputProtocol *instance,
+      uint64_t column,
+      uint64_t row
+  );
+  typedef Status(EFIAPI EnableCursor)(
+      struct SimpleTextOutputProtocol *instance,
+      bool enable
+  );
 
-  TextClearScreen clearScreen;
-  TextSetCursorPosition setCursorPosition;
-  TextEnableCursor enableCursor;
+  TextReset<struct SimpleTextOutputProtocol> reset;
 
-  SimpleTextOptputMode *currentMode;
+  OutputString outputString;
+  TestString testString;
+
+  QueryMode queryMode;
+  SetMode setMode;
+  SetAttribute setAttribute;
+
+  ClearScreen clearScreen;
+  SetCursorPosition setCursorPosition;
+  EnableCursor enableCursor;
+
+  OptputMode *currentMode;
 } SimpleTextOutputProtocol;
 
-struct SimpleTextInputProtocol;
-
-typedef struct {
-  uint16_t scanCode;
-  char16_t unicodeChar;
-} InputKey;
-
-typedef Status(EFIAPI *InputReadKey)(struct SimpleTextInputProtocol *instance,
-                                     InputKey *key);
-
 typedef struct SimpleTextInputProtocol {
-  TextReset<SimpleTextInputProtocol> reset;
+  typedef struct {
+    uint16_t scanCode;
+    char16_t unicodeChar;
+  } InputKey;
+
+  typedef Status(EFIAPI *InputReadKey)(
+      struct SimpleTextInputProtocol *instance,
+      InputKey *key
+  );
+
+  TextReset<struct SimpleTextInputProtocol> reset;
   InputReadKey readKeyStroke;
   Event::Instance waitForKey;
 } SimpleTextInputProtocol;

@@ -31,6 +31,11 @@
 },
 {
   "directory": "/home/yywd_123/uefi++64",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/efirt/string.cpp.o", "efirt/string.cpp"],
+  "file": "efirt/string.cpp"
+},
+{
+  "directory": "/home/yywd_123/uefi++64",
   "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-Os", "-Iinclude", "-c", "-g", "-ffreestanding", "-nostdlib", "-mcmodel=large", "-m64", "-fdata-sections", "-ffunction-sections", "-fno-exceptions", "-fno-rtti", "-Wall", "-Werror", "-DNDEBUG", "-o", "build/.objs/efi_application/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
   "file": "src/main.cpp"
 }]
