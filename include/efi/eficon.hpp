@@ -145,7 +145,7 @@
 namespace efi {
 
 template <typename T>
-using TextReset = Status(EFIAPI *)(T *instance, bool extendedVerification);
+using TextReset = Status(EFIAPI *)(I T *instance, I bool extendedVerification);
 
 typedef struct SimpleTextOutputProtocol {
   typedef struct {
@@ -159,37 +159,38 @@ typedef struct SimpleTextOutputProtocol {
   } OptputMode;
 
   typedef Status(EFIAPI *OutputString)(
-      struct SimpleTextOutputProtocol *instance,
-      const char16_t *string
+      I struct SimpleTextOutputProtocol *instance,
+      I const char16_t *string
   );
   typedef Status(EFIAPI *TestString)(
-      struct SimpleTextOutputProtocol *instance,
-      const char16_t *string
+      I struct SimpleTextOutputProtocol *instance,
+      I const char16_t *string
   );
   typedef Status(EFIAPI *QueryMode)(
-      struct SimpleTextOutputProtocol *instance,
-      uint64_t modeNumber,
-      uint64_t *columns,
-      uint64_t *rows
+      I struct SimpleTextOutputProtocol *instance,
+      I uint64_t modeNumber,
+      O uint64_t *columns,
+      O uint64_t *rows
   );
   typedef Status(EFIAPI *SetMode)(
-      struct SimpleTextOutputProtocol *instance,
-      uint64_t modeNumber
+      I struct SimpleTextOutputProtocol *instance,
+      I uint64_t modeNumber
   );
   typedef Status(EFIAPI *SetAttribute)(
-      struct SimpleTextOutputProtocol *instance,
-      uint64_t attribute
+      I struct SimpleTextOutputProtocol *instance,
+      I uint64_t attribute
   );
-  typedef Status(EFIAPI *ClearScreen)(struct SimpleTextOutputProtocol *instance
+  typedef Status(EFIAPI *ClearScreen)(
+      I struct SimpleTextOutputProtocol *instance
   );
   typedef Status(EFIAPI *SetCursorPosition)(
-      struct SimpleTextOutputProtocol *instance,
-      uint64_t column,
-      uint64_t row
+      I struct SimpleTextOutputProtocol *instance,
+      I uint64_t column,
+      I uint64_t row
   );
   typedef Status(EFIAPI *EnableCursor)(
-      struct SimpleTextOutputProtocol *instance,
-      bool enable
+      I struct SimpleTextOutputProtocol *instance,
+      I bool enable
   );
 
   TextReset<struct SimpleTextOutputProtocol> reset;
@@ -215,8 +216,8 @@ typedef struct SimpleTextInputProtocol {
   } InputKey;
 
   typedef Status(EFIAPI *InputReadKey)(
-      struct SimpleTextInputProtocol *instance,
-      InputKey *key
+      I struct SimpleTextInputProtocol *instance,
+      O InputKey *key
   );
 
   TextReset<struct SimpleTextInputProtocol> reset;
