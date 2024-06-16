@@ -2,6 +2,13 @@ add_rules("mode.debug", "mode.release")
 
 local ovmf_path = "/usr/share/OVMF/OVMF_CODE_4M.fd" -- replace with your ovmf path
 
+-- choose the executable's subsystem
+-- "efi-app": efi application
+-- "efi-bsd": efi boot service driver
+-- "efi-rtd": efi runtime driver
+-- "sal-rtd": sal runtime driver(see https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/itanium-system-abstraction-layer-specification.pdf)
+local subsystem = "efi-bsd"
+
 target("efi_application")
     set_kind("binary")
 
@@ -36,7 +43,7 @@ target("efi_application")
         -- generate efi image
         os.mkdir(rundir)
         
-        os.exec(objcopy.." -j .text -j .data -j .rela.dyn -j .reloc --target efi-app-x86_64 "..objectdir.."/"..name..".so "..rundir.."/"..name.."_unstrip.efi")
+        os.exec(objcopy.." -j .text -j .data -j .rela.dyn -j .reloc --target efi-app-x86_64 --subsystem "..subsystem.." "..objectdir.."/"..name..".so "..rundir.."/"..name.."_unstrip.efi")
         os.exec(objcopy.." -R .reloc --strip-all "..rundir.."/"..name.."_unstrip.efi "..rundir.."/"..name.."_stripped.efi")
     end)
 
