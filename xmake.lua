@@ -1,13 +1,13 @@
 add_rules("mode.debug", "mode.release")
 
-local ovmf_path = "/usr/share/OVMF/OVMF_CODE_4M.fd" -- replace with your ovmf path
+local ovmf_path = "" -- replace with your ovmf path(for `xmake run`)
 
 -- choose the executable's subsystem
 -- "efi-app": efi application
 -- "efi-bsd": efi boot service driver
 -- "efi-rtd": efi runtime driver
 -- "sal-rtd": sal runtime driver(see https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/itanium-system-abstraction-layer-specification.pdf)
-local subsystem = "efi-bsd"
+local subsystem = ""
 
 target("efi_application")
     set_kind("binary")
@@ -22,6 +22,12 @@ target("efi_application")
 
     before_build("!linux|x86_64", function () 
         raise("invaild platform, please use linux or cross compiler instead")
+    end)
+
+    before_build(function () 
+        if(subsystem == "") then
+            raise("please replace subsystem with the target subsystem in xmake.lua")
+        end
     end)
 
     on_link(function (target)
@@ -48,6 +54,10 @@ target("efi_application")
     end)
 
     on_run(function (target) 
+        if(ovmf_path == "") then
+            raise("please replace ovmf_path with your ovmf path in xmake.lua")
+        end
+
         -- copy to build/esp
         rundir = target:rundir()
         name = target:name()
