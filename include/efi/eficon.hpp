@@ -162,31 +162,32 @@ typedef struct SimpleTextOutputProtocol {
       struct SimpleTextOutputProtocol *instance,
       const char16_t *string
   );
-  typedef Status(EFIAPI TestString)(
+  typedef Status(EFIAPI *TestString)(
       struct SimpleTextOutputProtocol *instance,
       const char16_t *string
   );
-  typedef Status(EFIAPI QueryMode)(
+  typedef Status(EFIAPI *QueryMode)(
       struct SimpleTextOutputProtocol *instance,
       uint64_t modeNumber,
       uint64_t *columns,
       uint64_t *rows
   );
-  typedef Status(EFIAPI SetMode)(
+  typedef Status(EFIAPI *SetMode)(
       struct SimpleTextOutputProtocol *instance,
       uint64_t modeNumber
   );
-  typedef Status(EFIAPI SetAttribute)(
+  typedef Status(EFIAPI *SetAttribute)(
       struct SimpleTextOutputProtocol *instance,
       uint64_t attribute
   );
-  typedef Status(EFIAPI ClearScreen)(struct SimpleTextOutputProtocol *instance);
-  typedef Status(EFIAPI SetCursorPosition)(
+  typedef Status(EFIAPI *ClearScreen)(struct SimpleTextOutputProtocol *instance
+  );
+  typedef Status(EFIAPI *SetCursorPosition)(
       struct SimpleTextOutputProtocol *instance,
       uint64_t column,
       uint64_t row
   );
-  typedef Status(EFIAPI EnableCursor)(
+  typedef Status(EFIAPI *EnableCursor)(
       struct SimpleTextOutputProtocol *instance,
       bool enable
   );
