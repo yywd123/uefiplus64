@@ -30,9 +30,9 @@ File *open(const char16_t *path, uint64_t openMode, uint64_t attributes) {
 
   rootfs->openVolume(rootfs, &volume);
 
-  volume->_open(volume, &file, path, openMode, attributes);
+  auto stat = volume->_open(volume, &file, path, openMode, attributes);
 
-  return file;
+  return stat == 0 ? file : nullptr;
 }
 
 PoolObject<FileInfo> File::getInfo() {
