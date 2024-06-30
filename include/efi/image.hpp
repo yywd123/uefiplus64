@@ -19,7 +19,7 @@ typedef struct LoadedImage {
   SystemTable *systemTable;
 
   Handle deviceHandle;
-  DevicePath::DevicePath *filePath;
+  DevicePath *filePath;
   void *reserved;
 
   uint32_t loadOptionsSize;
@@ -32,19 +32,19 @@ typedef struct LoadedImage {
   Unload unload;
 } LoadedImage;
 
-namespace ImageLoader {
+namespace Image {
 typedef struct {
   size_t length;
   const char16_t *info;
   Status status;
 } ExitInfo;
 
-Handle load(DevicePath::DevicePath *imagePath);
+Handle load(DevicePath *imagePath);
 ExitInfo start(Handle imageHandle);
 Status unload(Handle imageHandle);
 
 LoadedImage *getLoadedImageProtocol(Handle imageHandle);
 
-} // namespace ImageLoader
+} // namespace Image
 
 } // namespace efi

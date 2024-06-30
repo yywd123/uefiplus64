@@ -22,11 +22,7 @@ Status locateHandleBuffer(
       ->locateHandleBuffer(searchType, &guid, searchKey, handleCount, list);
 }
 
-Status locateDevicePath(
-    Guid guid,
-    DevicePath::DevicePath **devicePath,
-    Handle *handle
-) {
+Status locateDevicePath(Guid guid, DevicePath **devicePath, Handle *handle) {
   auto bs = getSystemTable()->bootServices;
 
   return bs->locateDevicePath(&guid, devicePath, handle);

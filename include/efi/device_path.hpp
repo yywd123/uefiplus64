@@ -34,23 +34,19 @@
 namespace efi {
 
 typedef struct DevicePathUtil {
-  typedef uint64_t(EFIAPI *GetDevicePathSize)(
-      const DevicePath::DevicePath *devicePath
+  typedef uint64_t(EFIAPI *GetDevicePathSize)(const DevicePath *devicePath);
+  typedef DevicePath *(EFIAPI *DuplicateDevicePath)(const DevicePath *devicePath
   );
-  typedef DevicePath::DevicePath *(EFIAPI *DuplicateDevicePath)(
-      const DevicePath::DevicePath *devicePath
+  typedef DevicePath *(EFIAPI *AppendDevicePath)(
+      const DevicePath *parent,
+      const DevicePath *child
   );
-  typedef DevicePath::DevicePath *(EFIAPI *AppendDevicePath)(
-      const DevicePath::DevicePath *parent,
-      const DevicePath::DevicePath *child
-  );
-  typedef DevicePath::DevicePath *(EFIAPI *NextDevicePathInstance)(
-      DevicePath::DevicePath **devicePathInstance,
+  typedef DevicePath *(EFIAPI *NextDevicePathInstance)(
+      DevicePath **devicePathInstance,
       uint64_t *devicePathInstanceSize
   );
-  typedef bool(EFIAPI *IsMultiInstance)(const DevicePath::DevicePath *devicePath
-  );
-  typedef DevicePath::DevicePath *(EFIAPI *CreateNode)(
+  typedef bool(EFIAPI *IsMultiInstance)(const DevicePath *devicePath);
+  typedef DevicePath *(EFIAPI *CreateNode)(
       uint8_t nodeType,
       uint8_t nodeSubType,
       uint16_t nodeLength
@@ -67,7 +63,7 @@ typedef struct DevicePathUtil {
 } DevicePathUtil;
 
 typedef struct DevicePathFromText {
-  typedef DevicePath::DevicePath *(EFIAPI *FromText)(const char16_t *path);
+  typedef DevicePath *(EFIAPI *FromText)(const char16_t *path);
 
   FromText toDeviceNode;
   FromText toDevicePath;
@@ -75,7 +71,7 @@ typedef struct DevicePathFromText {
 
 typedef struct DevicePathToText {
   typedef char16_t *(EFIAPI *ToText)(
-      const DevicePath::DevicePath *devicePath,
+      const DevicePath *devicePath,
       bool displayOnly,
       bool allowShortcuts
   );
@@ -84,9 +80,9 @@ typedef struct DevicePathToText {
   ToText fromDevicePath;
 } DevicePathToText;
 
-namespace DevicePath {
+namespace DevicePathUtils {
 
-DevicePath *fromString(const char16_t *path, bool isNode);
+PoolObject<DevicePath> fromString(const char16_t *path, bool isNode);
 
 PoolObject<const char16_t> toString(
     DevicePath *devicePath,
@@ -95,11 +91,9 @@ PoolObject<const char16_t> toString(
     bool isNode
 );
 
-DevicePath *
+PoolObject<DevicePath>
 append(const DevicePath *parent, const DevicePath *child, bool isChildNode);
 
-DevicePath *getRootFsDevicePath();
-
-} // namespace DevicePath
+} // namespace DevicePathUtils
 
 } // namespace efi

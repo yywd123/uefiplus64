@@ -9,6 +9,8 @@ local ovmf_path = "" -- replace with your ovmf path(for `xmake run`)
 -- "sal-rtd": sal runtime driver(see https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/itanium-system-abstraction-layer-specification.pdf)
 local subsystem = ""
 
+local ldflags = ""
+
 target("efi_application")
     set_kind("binary")
 
@@ -16,6 +18,7 @@ target("efi_application")
     set_optimize("smallest")
 
     add_includedirs("include")
+    add_forceincludes("config.hpp")
 
     add_files("efirt/**.cpp")
     add_files("src/**.cpp")
@@ -26,7 +29,7 @@ target("efi_application")
 
     before_build(function () 
         if(subsystem == "") then
-            raise("please replace subsystem with the target subsystem in xmake.lua")
+            raise("please replace \"subsystem\" with the target subsystem in xmake.lua")
         end
     end)
 
@@ -44,7 +47,7 @@ target("efi_application")
         end
         
         -- link
-        os.exec(compiler.." "..objlist.."-flto -nostdlib -nostartfiles -Tlinker.ld -shared -Wl,-Bsymbolic,-gc-sections -o "..objectdir.."/"..name..".so")
+        os.exec(compiler.." "..objlist.."-flto -nostdlib -nostartfiles -Tlinker.ld -shared -Wl,-Bsymbolic,-Bstatic,-gc-sections "..ldflags.." -o "..objectdir.."/"..name..".so")
         
         -- generate efi image
         os.mkdir(rundir)
@@ -55,7 +58,7 @@ target("efi_application")
 
     on_run(function (target) 
         if(ovmf_path == "") then
-            raise("please replace ovmf_path with your ovmf path in xmake.lua")
+            raise("please replace \"ovmf_path\" with your ovmf path in xmake.lua")
         end
 
         -- copy to build/esp
@@ -66,5 +69,5 @@ target("efi_application")
         os.mkdir(espdir.."efi/boot/")
         os.trycp(rundir.."/"..name.."_stripped.efi", espdir.."efi/boot/bootx64.efi")
 
-        os.exec("qemu-system-x86_64 -net none -m 1g -hda fat:rw:build/esp -pflash "..ovmf_path)
+        os.exec("qemu-system-x86_64 -net none -m 1g -hda fat:rw:build/esp -serial stdio -pflash "..ovmf_path)
     end)

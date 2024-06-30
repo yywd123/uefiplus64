@@ -4,15 +4,17 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <sys/types.h>
 
-#define I   /* input param */
-#define O   /* output param */
-#define OPT /* optional param */
+#define IN       /* input param */
+#define OUT      /* output param */
+#define OPTIONAL /* optional param */
 
 #define BIT(n) (1ull << (n))
 #define EFIAPI __attribute__((ms_abi))
 
 #define EFIMAKEERR(a) (a | BIT(63))
+#define EFICUSTOMERR(a) (a | BIT(63) | BIT(62))
 #define EFI_ERROR(a) (a & BIT(63))
 
 #define EFI_SUCCESS 0
@@ -58,6 +60,10 @@
 #define EFI_WARN_FILE_SYSTEM (6)
 #define EFI_WARN_RESET_REQUIRED (7)
 
+// custom error codes(not in uefi spec)
+
+#define ERR_INVAILD_STATE EFICUSTOMERR(0)
+
 // time
 
 #define EFI_TIME_ADJUST_DAYLIGHT 0x01
@@ -85,8 +91,8 @@
 #define EFI_MEMORY_ISA_MASK 0x0FFFF00000000000ULL
 
 #define EFI_CACHE_ATTRIBUTE_MASK                                               \
-  (EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB |             \
-   EFI_MEMORY_UCE | EFI_MEMORY_WP)
+  (EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT | EFI_MEMORY_WB               \
+   | EFI_MEMORY_UCE | EFI_MEMORY_WP)
 #define EFI_MEMORY_ACCESS_MASK (EFI_MEMORY_RP | EFI_MEMORY_XP | EFI_MEMORY_RO)
 #define EFI_MEMORY_ATTRIBUTE_MASK                                              \
   (EFI_MEMORY_ACCESS_MASK | EFI_MEMORY_SP | EFI_MEMORY_CPU_CRYPTO)
@@ -139,8 +145,6 @@ typedef struct Guid {
   }
 } Guid;
 
-namespace DevicePath {
-
 typedef struct DevicePath {
   enum class NodeType : uint8_t {
     Undefined,
@@ -155,8 +159,6 @@ typedef struct DevicePath {
   uint8_t subType;
   uint16_t length;
 } DevicePath;
-
-} // namespace DevicePath
 
 namespace Memory {
 
@@ -206,7 +208,7 @@ namespace Event {
 
 using TPL = uint64_t;
 using Instance = void *;
-using Callback = void(EFIAPI *)(I Instance event, I void *context);
+using Callback = void(EFIAPI *)(IN Instance event, IN void *context);
 
 enum class TimerDelayType : uint32_t {
   Cancel,
@@ -296,9 +298,72 @@ enum class ResetType : uint32_t {
   PlatformSpecific
 };
 
+template <typename T> class ListNode {
+  T *_prev;
+  T *_next;
+
+public:
+  class iterator {
+    T *ptr;
+
+  public:
+    iterator(T *p) { this->ptr = p; }
+    T *operator++() {
+      this->ptr = (T *)((ListNode *)this->ptr)->_next;
+      return this->ptr;
+    }
+    bool operator!=(iterator &it) { return this->ptr != it.ptr; }
+    T operator*() { return *ptr; }
+  };
+
+  void init() {
+    this->_prev = (T *)this;
+    this->_next = (T *)this;
+  }
+
+  template <typename R = T> R *push_front(ListNode *entry) {
+    entry->_next = (T *)this->_next;
+    entry->_prev = (T *)this;
+    entry->_next->_prev = (T *)entry;
+    this->_next = (T *)entry;
+
+    return (R *)this;
+  }
+
+  template <typename R = T> R *push_back(ListNode *entry) {
+    entry->_next = (T *)this;
+    entry->_prev = (T *)this->_prev;
+    entry->_prev->_next = (T *)entry;
+    this->_prev = (T *)entry;
+
+    return (R *)this;
+  }
+
+  template <typename R = T> R *remove() {
+    if (this->empty()) {
+      return this;
+    }
+
+    this->_next->_prev = (T *)this->_prev;
+    this->_prev->_next = (T *)this->_next;
+
+    return (R *)this->_next;
+  }
+
+  template <typename R = T> constexpr R *prev() { return (R *)this->_prev; }
+
+  template <typename R = T> constexpr R *next() { return (R *)this->_next; }
+
+  iterator begin() { return (T *)this->_next; }
+
+  iterator end() { return (T *)this; }
+
+  bool empty() { return this->_next == this; }
+};
+
 } // namespace efi
 
-#include <efi/eficon.hpp>
+#include <efi/protocol/console.hpp>
 
 namespace efi {
 
@@ -311,191 +376,191 @@ typedef struct {
 } __Table;
 
 typedef struct BootServices : public __Table {
-  typedef Event::TPL(EFIAPI *RaiseTaskPriorityLevel)(I Event::TPL tpl);
-  typedef void(EFIAPI *RestoreTaskPriorityLevel)(I Event::TPL tpl);
+  typedef Event::TPL(EFIAPI *RaiseTaskPriorityLevel)(IN Event::TPL tpl);
+  typedef void(EFIAPI *RestoreTaskPriorityLevel)(IN Event::TPL tpl);
 
   typedef Status(EFIAPI *AllocatePages)(
-      I Memory::AllocationType type,
-      I Memory::Type memoryType,
-      I uint64_t pageCount,
-      I O void **memory
+      IN Memory::AllocationType type,
+      IN Memory::Type memoryType,
+      IN uint64_t pageCount,
+      IN OUT void **memory
   );
-  typedef Status(EFIAPI *FreePages)(I void *p, I uint64_t pageCount);
+  typedef Status(EFIAPI *FreePages)(IN void *p, IN uint64_t pageCount);
   typedef Status(EFIAPI *GetMemoryMap)(
-      I O uint64_t *memoryMapSize,
-      O Memory::Descriptor *memoryMap,
-      O uint64_t *mapKey,
-      O uint64_t *descriptorSize,
-      O uint32_t *descriptorVersion
+      IN OUT uint64_t *memoryMapSize,
+      OUT Memory::Descriptor *memoryMap,
+      OUT uint64_t *mapKey,
+      OUT uint64_t *descriptorSize,
+      OUT uint32_t *descriptorVersion
   );
   typedef Status(EFIAPI *AllocatePool)(
-      I Memory::Type type,
-      I size_t size,
-      O void **buffer
+      IN Memory::Type type,
+      IN size_t size,
+      OUT void **buffer
   );
-  typedef Status(EFIAPI *FreePool)(I void *p);
+  typedef Status(EFIAPI *FreePool)(IN void *p);
 
   typedef Status(EFIAPI *CreateEvent)(
-      I uint32_t type,
-      I Event::TPL tpl,
-      I Event::Callback callback OPT,
-      I void *context OPT,
-      O Event::Instance *event
+      IN uint32_t type,
+      IN Event::TPL tpl,
+      IN Event::Callback callback OPTIONAL,
+      IN void *context OPTIONAL,
+      OUT Event::Instance *event
   );
   typedef Status(EFIAPI *CreateEventEx)(
-      I uint32_t type,
-      I Event::TPL notifyTpl,
-      I Event::Callback callback OPT,
-      I void *notifyContext OPT,
-      I Guid eventGroup OPT,
-      O Event::Instance *event
+      IN uint32_t type,
+      IN Event::TPL notifyTpl,
+      IN Event::Callback callback OPTIONAL,
+      IN void *notifyContext OPTIONAL,
+      IN Guid eventGroup OPTIONAL,
+      OUT Event::Instance *event
   );
   typedef Status(EFIAPI *SetTimer)(
-      I Event::Instance event,
-      I Event::TimerDelayType type,
-      I uint64_t triggerTime
+      IN Event::Instance event,
+      IN Event::TimerDelayType type,
+      IN uint64_t triggerTime
   );
-  typedef Status(EFIAPI *SignalEvent)(I Event::Instance event);
+  typedef Status(EFIAPI *SignalEvent)(IN Event::Instance event);
   typedef Status(EFIAPI *WaitForEvent)(
-      I uint64_t eventCount,
-      I Event::Instance *eventList,
-      O uint64_t *index
+      IN uint64_t eventCount,
+      IN Event::Instance *eventList,
+      OUT uint64_t *index
   );
-  typedef Status(EFIAPI *CloseEvent)(I Event::Instance event);
-  typedef Status(EFIAPI *CheckEvent)(I Event::Instance event);
+  typedef Status(EFIAPI *CloseEvent)(IN Event::Instance event);
+  typedef Status(EFIAPI *CheckEvent)(IN Event::Instance event);
 
   typedef Status(EFIAPI *
-                     InstallProtocolInterface)(I O Handle *Handle, I Guid *protocolGuid, I Protocol::InterfaceType type, I void *interface);
+                     InstallProtocolInterface)(IN OUT Handle *Handle, IN Guid *protocolGuid, IN Protocol::InterfaceType type, IN void *interface);
   typedef Status(EFIAPI *ReinstallProtocolInterface)(
-      I Handle handle,
-      I Guid *protocolGuid,
-      I void *oldInterface,
-      I void *newInterface
+      IN Handle handle,
+      IN Guid *protocolGuid,
+      IN void *oldInterface,
+      IN void *newInterface
   );
   typedef Status(EFIAPI *
-                     UninstallProtocolInterface)(I Handle handle, I Guid *protocolGuid, I void *interface);
+                     UninstallProtocolInterface)(IN Handle handle, IN Guid *protocolGuid, IN void *interface);
   typedef Status(EFIAPI *
-                     HandleProtocol)(I Handle handle, I Guid *protocolGuid, O void **interface);
+                     HandleProtocol)(IN Handle handle, IN Guid *protocolGuid, OUT void **interface);
   typedef Status(EFIAPI *RegisterProtocolNotify)(
-      I Guid *protocolGuid,
-      I Event::Instance event,
-      O void **registration
+      IN Guid *protocolGuid,
+      IN Event::Instance event,
+      OUT void **registration
   );
   typedef Status(EFIAPI *LocateHandle)(
-      I Protocol::SearchType searchType,
-      I Guid *protocolGuid OPT,
-      I void *searchKey OPT,
-      I O uint64_t *handleCount,
-      O Handle *handleList
+      IN Protocol::SearchType searchType,
+      IN Guid *protocolGuid OPTIONAL,
+      IN void *searchKey OPTIONAL,
+      IN OUT uint64_t *handleCount,
+      OUT Handle *handleList
   );
   typedef Status(EFIAPI *LocateDevicePath)(
-      I Guid *protocolGuid,
-      I O DevicePath::DevicePath **devicePath,
-      O Handle *device
+      IN Guid *protocolGuid,
+      IN OUT DevicePath **devicePath,
+      OUT Handle *device
   );
   typedef Status(EFIAPI *InstallConfigurationTable)(
-      I Guid *vendorGuid,
-      I void *table
+      IN Guid *vendorGuid,
+      IN void *table
   );
 
   typedef Status(EFIAPI *LoadImage)(
-      I bool bootPolicy,
-      I Handle parentImageHandle,
-      I DevicePath::DevicePath *imagePath OPT,
-      I void *sourceBuffer OPT,
-      I uint64_t sourceSize,
-      O Handle *imageHandle
+      IN bool bootPolicy,
+      IN Handle parentImageHandle,
+      IN DevicePath *imagePath OPTIONAL,
+      IN void *sourceBuffer OPTIONAL,
+      IN uint64_t sourceSize,
+      OUT Handle *imageHandle
   );
   typedef Status(EFIAPI *StartImage)(
-      I Handle imageHandle,
-      O uint64_t *exitDataSize,
-      O const char16_t **exitData
+      IN Handle imageHandle,
+      OUT uint64_t *exitDataSize,
+      OUT const char16_t **exitData
   );
   typedef Status(EFIAPI *Exit)(
-      I Handle imageHandle,
-      I Status status,
-      I uint64_t exitDataSize,
-      I const char16_t *exitData OPT
+      IN Handle imageHandle,
+      IN Status status,
+      IN uint64_t exitDataSize,
+      IN const char16_t *exitData OPTIONAL
   );
-  typedef Status(EFIAPI *ImageUnload)(I Handle imageHandle);
+  typedef Status(EFIAPI *ImageUnload)(IN Handle imageHandle);
   typedef Status(EFIAPI *ExitBootServices)(
-      I Handle imageHandle,
-      I uint64_t mapKey
+      IN Handle imageHandle,
+      IN uint64_t mapKey
   );
 
   typedef Status(EFIAPI *GetNextMonotonicCount)(uint64_t *count);
 
-  typedef Status(EFIAPI *Stall)(I uint64_t microseconds);
+  typedef Status(EFIAPI *Stall)(IN uint64_t microseconds);
   typedef Status(EFIAPI *SetWatchdogTimer)(
-      I uint64_t timeout,
-      I uint64_t watchdogCode,
-      I uint64_t dataSize,
-      I const char16_t *watchdogData OPT
+      IN uint64_t timeout,
+      IN uint64_t watchdogCode,
+      IN uint64_t dataSize,
+      IN const char16_t *watchdogData OPTIONAL
   );
 
   typedef Status(EFIAPI *ConnectController)(
-      I Handle controllerHandle,
-      I Handle *driverImageHandle OPT,
-      I DevicePath::DevicePath *remainingDevicePath OPT,
-      I bool recursive
+      IN Handle controllerHandle,
+      IN Handle *driverImageHandle OPTIONAL,
+      IN DevicePath *remainingDevicePath OPTIONAL,
+      IN bool recursive
   );
   typedef Status(EFIAPI *DisconnectController)(
-      I Handle controllerHandle,
-      I Handle driverImageHandle OPT,
-      I Handle childHandle OPT
+      IN Handle controllerHandle,
+      IN Handle driverImageHandle OPTIONAL,
+      IN Handle childHandle OPTIONAL
   );
 
   typedef Status(EFIAPI *OpenProtocol)(
-      I Handle handle,
-      I Guid *protocolGuid,
-      O void **interface,
-      I Handle agentHandle,
-      I Handle controllerHandle,
-      I uint32_t attributes
+      IN Handle handle,
+      IN Guid *protocolGuid,
+      OUT void **interface,
+      IN Handle agentHandle,
+      IN Handle controllerHandle,
+      IN uint32_t attributes
   );
   typedef Status(EFIAPI *CloseProtocol)(
-      I Handle handle,
-      I Guid *protocolGuid,
-      I Handle agentHandle,
-      I Handle controllerHandle
+      IN Handle handle,
+      IN Guid *protocolGuid,
+      IN Handle agentHandle,
+      IN Handle controllerHandle
   );
   typedef Status(EFIAPI *OpenProtocolInfomation)(
-      I Handle handle,
-      I Guid *protocolGuid,
-      O Protocol::ProtocolInformation **infomationList,
-      O uint64_t *informationCount
+      IN Handle handle,
+      IN Guid *protocolGuid,
+      OUT Protocol::ProtocolInformation **infomationList,
+      OUT uint64_t *informationCount
   );
   typedef Status(EFIAPI *ProtocolsPerHandle)(
-      I Handle handle,
-      O Guid ***protocolList,
-      O uint64_t *protocolCount
+      IN Handle handle,
+      OUT Guid ***protocolList,
+      OUT uint64_t *protocolCount
   );
   typedef Status(EFIAPI *LocateHandleBuffer)(
-      I Protocol::SearchType searchType,
-      I Guid *protocolGuid OPT,
-      I void *searchKey OPT,
-      O uint64_t *handleCount,
-      O Handle **handleList
+      IN Protocol::SearchType searchType,
+      IN Guid *protocolGuid OPTIONAL,
+      IN void *searchKey OPTIONAL,
+      OUT uint64_t *handleCount,
+      OUT Handle **handleList
   );
   typedef Status(EFIAPI *
-                     LocateProtocol)(I Guid *protocolGuid, I void *registration OPT, O void **interface);
+                     LocateProtocol)(IN Guid *protocolGuid, IN void *registration OPTIONAL, OUT void **interface);
   typedef Status(EFIAPI *InstallMultipleProtocolInterfaces)(
-      I O Handle *handle,
+      IN OUT Handle *handle,
       ...
   );
   typedef Status(EFIAPI *UninstallMultipleProtocolInterfaces)(
-      I Handle handle,
+      IN Handle handle,
       ...
   );
 
   typedef Status(EFIAPI *CalculateCrc32)(
-      I void *data,
-      I uint64_t dataSize,
-      O uint32_t *crc32
+      IN void *data,
+      IN uint64_t dataSize,
+      OUT uint32_t *crc32
   );
 
-  typedef void(EFIAPI *Memcpy)(I void *dest, I void *src, I size_t size);
-  typedef void(EFIAPI *Memset)(I void *buf, I size_t size, I uint8_t value);
+  typedef void(EFIAPI *Memcpy)(IN void *dest, IN void *src, IN size_t size);
+  typedef void(EFIAPI *Memset)(IN void *buf, IN size_t size, IN uint8_t value);
 
   //	efi1.0+(revision>=0x00010000)
 
@@ -562,16 +627,19 @@ typedef struct BootServices : public __Table {
 
 typedef struct RuntimeServices : public __Table {
   typedef Status(EFIAPI *GetTime)(
-      O Time::Time *time,
-      O Time::Capabilities *capabilities
+      OUT Time::Time *time,
+      OUT Time::Capabilities *capabilities
   );
-  typedef Status(EFIAPI *SetTime)(I Time::Time *time);
+  typedef Status(EFIAPI *SetTime)(IN Time::Time *time);
   typedef Status(EFIAPI *GetWakeupTime)(
-      O bool *enabled,
-      O bool *pending,
-      O Time::Time *time
+      OUT bool *enabled,
+      OUT bool *pending,
+      OUT Time::Time *time
   );
-  typedef Status(EFIAPI *SetWakeupTime)(I bool enable, I Time::Time *time OPT);
+  typedef Status(EFIAPI *SetWakeupTime)(
+      IN bool enable,
+      IN Time::Time *time OPTIONAL
+  );
 
   typedef Status(EFIAPI *SetVirtualMemoryMap)(
       uint64_t memoryMapSize,
@@ -580,54 +648,54 @@ typedef struct RuntimeServices : public __Table {
       Memory::Descriptor *map
   );
   typedef Status(EFIAPI *ConvertRuntimePointer)(
-      I Memory::PointerAttribute attribute,
-      I O void **address
+      IN Memory::PointerAttribute attribute,
+      IN OUT void **address
   );
 
   typedef Status(EFIAPI *GetVariable)(
-      I const char16_t *variableName,
-      I Guid *vendorGuid,
-      O uint32_t *attributes OPT,
-      I O uint64_t *dataSize,
-      O void *data OPT
+      IN const char16_t *variableName,
+      IN Guid *vendorGuid,
+      OUT uint32_t *attributes OPTIONAL,
+      IN OUT uint64_t *dataSize,
+      OUT void *data OPTIONAL
   );
   typedef Status(EFIAPI *GetNextVariableName)(
-      I O uint64_t *variableNameSize,
-      I O const char16_t *variableName,
-      I O Guid *vendorGuid
+      IN OUT uint64_t *variableNameSize,
+      IN OUT const char16_t *variableName,
+      IN OUT Guid *vendorGuid
   );
   typedef Status(EFIAPI *SetVariable)(
-      I const char16_t *variableName,
-      I Guid *vendorGuid,
-      I uint32_t attributes,
-      I uint64_t dataSize,
-      I void *data
+      IN const char16_t *variableName,
+      IN Guid *vendorGuid,
+      IN uint32_t attributes,
+      IN uint64_t dataSize,
+      IN void *data
   );
 
   typedef Status(EFIAPI *UpdateCapsule)(
-      I Capsule::Header **capsuleList,
-      I uint64_t capsuleCount,
-      I uintptr_t scatterGatherList OPT
+      IN Capsule::Header **capsuleList,
+      IN uint64_t capsuleCount,
+      IN uintptr_t scatterGatherList OPTIONAL
   );
   typedef Status(EFIAPI *QueryCapsuleCapabilities)(
-      I Capsule::Header **capsuleList,
-      I uint64_t capsuleCount,
-      O uint64_t *maximumCapsuleSize,
-      O ResetType *requiredResetType
+      IN Capsule::Header **capsuleList,
+      IN uint64_t capsuleCount,
+      OUT uint64_t *maximumCapsuleSize,
+      OUT ResetType *requiredResetType
   );
   typedef Status(EFIAPI *QueryVariableInfo)(
-      I uint32_t attributes,
-      O uint64_t *maximumVariableStorageSize,
-      O uint64_t *remainingVariableStorageSize,
-      O uint64_t *maximumVariableSize
+      IN uint32_t attributes,
+      OUT uint64_t *maximumVariableStorageSize,
+      OUT uint64_t *remainingVariableStorageSize,
+      OUT uint64_t *maximumVariableSize
   );
 
-  typedef Status(EFIAPI *GetNextHighMonotonicCount)(O uint32_t *count);
+  typedef Status(EFIAPI *GetNextHighMonotonicCount)(OUT uint32_t *count);
   typedef Status(EFIAPI *ResetSystem)(
-      I ResetType type,
-      I Status resetStatus,
-      I uint64_t dataSize,
-      I const char16_t *resetData OPT
+      IN ResetType type,
+      IN Status resetStatus,
+      IN uint64_t dataSize,
+      IN const char16_t *resetData OPTIONAL
   );
 
   GetTime getTime;

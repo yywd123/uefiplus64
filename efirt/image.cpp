@@ -1,10 +1,10 @@
-#include <efi/image_loader.hpp>
+#include <efi/image.hpp>
 #include <efi/protocol.hpp>
 #include <efi/rt.hpp>
 
-namespace efi::ImageLoader {
+namespace efi::Image {
 
-Handle load(DevicePath::DevicePath *imagePath) {
+Handle load(DevicePath *imagePath) {
   auto bs = getSystemTable()->bootServices;
   Handle handle;
 
@@ -43,4 +43,4 @@ LoadedImage *getLoadedImageProtocol(Handle imageHandle) {
   return protocol;
 }
 
-} // namespace efi::ImageLoader
+} // namespace efi::Image

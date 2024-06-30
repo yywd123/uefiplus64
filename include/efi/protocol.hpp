@@ -14,11 +14,7 @@ Status locateHandleBuffer(
     Handle **list
 );
 
-Status locateDevicePath(
-    Guid guid,
-    DevicePath::DevicePath **devicePath,
-    Handle *handle
-);
+Status locateDevicePath(Guid guid, DevicePath **devicePath, Handle *handle);
 
 Status handleProtocol(Guid guid, void **instance, Handle handle);
 

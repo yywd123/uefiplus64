@@ -6,6 +6,9 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include"
             ],
+            "forcedInclude": [
+                "${workspaceFolder}/config.hpp"
+            ],
             "defines": [],
             "compilerPath": "/usr/bin/g++"
         }

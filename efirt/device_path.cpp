@@ -1,11 +1,11 @@
 #include <efi/device_path.hpp>
-#include <efi/image_loader.hpp>
+#include <efi/image.hpp>
 #include <efi/protocol.hpp>
 #include <efi/rt.hpp>
 
-namespace efi::DevicePath {
+namespace efi::DevicePathUtils {
 
-DevicePath *fromString(const char16_t *path, bool isNode) {
+PoolObject<DevicePath> fromString(const char16_t *path, bool isNode) {
   DevicePathFromText *protocol;
 
   Protocol::locateProtocol(
@@ -35,7 +35,7 @@ PoolObject<const char16_t> toString(
                    ->fromDevicePath(devicePath, displayOnly, allowShortcuts);
 }
 
-DevicePath *
+PoolObject<DevicePath>
 append(const DevicePath *parent, const DevicePath *child, bool isChildNode) {
   DevicePathUtil *protocol;
 
@@ -48,21 +48,4 @@ append(const DevicePath *parent, const DevicePath *child, bool isChildNode) {
                      : protocol->appendDevicePath(parent, child);
 }
 
-DevicePath *getRootFsDevicePath() {
-  auto imageHandle = getImageHandle();
-  auto loadedImage = ImageLoader::getLoadedImageProtocol(imageHandle);
-  DevicePath *path;
-
-  Protocol::openProtocol(
-      EFI_DEVICE_PATH_PROTOCOL_GUID,
-      (void **)&path,
-      loadedImage->deviceHandle,
-      imageHandle,
-      nullptr,
-      Protocol::OpenAttribute::GetProtocol
-  );
-
-  return path;
-}
-
-} // namespace efi::DevicePath
+} // namespace efi::DevicePathUtils

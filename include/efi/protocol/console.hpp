@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef __UEFIPLUS64__
-#error "do not include eficon.hpp directly, use efi.hpp instead"
+#error "do not include this header directly, use efi.hpp instead"
 #endif
 
 #define EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID                                   \
@@ -109,8 +109,6 @@
 #define ARROW_UP 0x2191
 #define ARROW_DOWN 0x2193
 
-//
-
 #define CHAR_NULL 0x00
 #define CHAR_BACKSPACE 0x08
 #define CHAR_TAB 0x09
@@ -145,7 +143,8 @@
 namespace efi {
 
 template <typename T>
-using TextReset = Status(EFIAPI *)(I T *instance, I bool extendedVerification);
+using TextReset
+    = Status(EFIAPI *)(IN T *instance, IN bool extendedVerification);
 
 typedef struct SimpleTextOutputProtocol {
   typedef struct {
@@ -159,38 +158,38 @@ typedef struct SimpleTextOutputProtocol {
   } OptputMode;
 
   typedef Status(EFIAPI *OutputString)(
-      I struct SimpleTextOutputProtocol *instance,
-      I const char16_t *string
+      IN struct SimpleTextOutputProtocol *instance,
+      IN const char16_t *string
   );
   typedef Status(EFIAPI *TestString)(
-      I struct SimpleTextOutputProtocol *instance,
-      I const char16_t *string
+      IN struct SimpleTextOutputProtocol *instance,
+      IN const char16_t *string
   );
   typedef Status(EFIAPI *QueryMode)(
-      I struct SimpleTextOutputProtocol *instance,
-      I uint64_t modeNumber,
-      O uint64_t *columns,
-      O uint64_t *rows
+      IN struct SimpleTextOutputProtocol *instance,
+      IN uint64_t modeNumber,
+      OUT uint64_t *columns,
+      OUT uint64_t *rows
   );
   typedef Status(EFIAPI *SetMode)(
-      I struct SimpleTextOutputProtocol *instance,
-      I uint64_t modeNumber
+      IN struct SimpleTextOutputProtocol *instance,
+      IN uint64_t modeNumber
   );
   typedef Status(EFIAPI *SetAttribute)(
-      I struct SimpleTextOutputProtocol *instance,
-      I uint64_t attribute
+      IN struct SimpleTextOutputProtocol *instance,
+      IN uint64_t attribute
   );
   typedef Status(EFIAPI *ClearScreen)(
-      I struct SimpleTextOutputProtocol *instance
+      IN struct SimpleTextOutputProtocol *instance
   );
   typedef Status(EFIAPI *SetCursorPosition)(
-      I struct SimpleTextOutputProtocol *instance,
-      I uint64_t column,
-      I uint64_t row
+      IN struct SimpleTextOutputProtocol *instance,
+      IN uint64_t column,
+      IN uint64_t row
   );
   typedef Status(EFIAPI *EnableCursor)(
-      I struct SimpleTextOutputProtocol *instance,
-      I bool enable
+      IN struct SimpleTextOutputProtocol *instance,
+      IN bool enable
   );
 
   TextReset<struct SimpleTextOutputProtocol> reset;
@@ -216,8 +215,8 @@ typedef struct SimpleTextInputProtocol {
   } InputKey;
 
   typedef Status(EFIAPI *InputReadKey)(
-      I struct SimpleTextInputProtocol *instance,
-      O InputKey *key
+      IN struct SimpleTextInputProtocol *instance,
+      OUT InputKey *key
   );
 
   TextReset<struct SimpleTextInputProtocol> reset;
