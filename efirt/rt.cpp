@@ -77,4 +77,12 @@ void exit(Status status) {
   systemTable->bootServices->exit(imageHandle, status, 0, nullptr);
 }
 
+Event::TPLGuard::TPLGuard(TPL newTPL) {
+  this->tpl = systemTable->bootServices->raiseTaskPriorityLevel(newTPL);
+}
+
+Event::TPLGuard::~TPLGuard() {
+  systemTable->bootServices->restoreTaskPriorityLevel(this->tpl);
+}
+
 } // namespace efi
