@@ -1,13 +1,13 @@
 add_rules("mode.debug", "mode.release")
 
-local ovmf_path = "" -- replace with your ovmf path(for `xmake run`)
+local ovmf_path = "/usr/share/OVMF/OVMF_CODE_4M.fd" -- replace with your ovmf path(for `xmake run`)
 
 -- choose the executable's subsystem
 -- "efi-app": efi application
 -- "efi-bsd": efi boot service driver
 -- "efi-rtd": efi runtime driver
 -- "sal-rtd": sal runtime driver(see https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/itanium-system-abstraction-layer-specification.pdf)
-local subsystem = ""
+local subsystem = "efi-app"
 
 local ldflags = ""
 
