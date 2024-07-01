@@ -39,6 +39,7 @@ typedef struct {
   Status status;
 } ExitInfo;
 
+Handle load(void *image, size_t size);
 Handle load(DevicePath *imagePath);
 ExitInfo start(Handle imageHandle);
 Status unload(Handle imageHandle);

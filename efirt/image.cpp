@@ -4,11 +4,20 @@
 
 namespace efi::Image {
 
+Handle load(void *image, size_t size) {
+  auto bs = getSystemTable()->bootServices;
+  Handle handle;
+
+  bs->loadImage(false, getImageHandle(), nullptr, image, size, &handle);
+
+  return handle;
+}
+
 Handle load(DevicePath *imagePath) {
   auto bs = getSystemTable()->bootServices;
   Handle handle;
 
-  bs->loadImage(false, efi::getImageHandle(), imagePath, nullptr, 0, &handle);
+  bs->loadImage(false, getImageHandle(), imagePath, nullptr, 0, &handle);
 
   return handle;
 }
