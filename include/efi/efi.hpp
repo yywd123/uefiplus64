@@ -736,7 +736,7 @@ typedef struct SystemTable : public __Table {
   RuntimeServices *runtimeServices;
   BootServices *bootServices;
 
-  typedef struct {
+  struct {
     uint64_t tableEntryCount;
     struct {
       Guid guid;
